@@ -1,0 +1,103 @@
+﻿<launch>
+
+
+   <master auto="start"/>
+    <!-- Run the map server --> 
+    <!-- <node name="map_server" pkg="map_server" type="map_server" args="/home/Program/visualnav-transformer/rtab_map_qizhi_test/rtab_map_qizhi_test.yaml"/> -->
+
+    <!-- <include file="$(find orbbec_camera)/launch/femto_bolt.launch">
+      <arg name="enable_colored_point_cloud" value="true" />
+    </include> -->
+
+    <!-- <include file="$(find ranger_bringup)/launch/ranger_mini_v2.launch" /> -->
+    <!-- <include file="$(find tracer_bringup)/launch/tracer_robot_base.launch" /> -->
+    <node pkg="nodelet" type="nodelet" name="rgbd_sync" args="standalone rtabmap_sync/rgbd_sync" output="screen">
+      <remap from="rgb/image"        to="/camera/color/image_raw"/>
+      <remap from="depth/image"      to="/camera/depth/image_raw"/>
+      <remap from="rgb/camera_info"  to="/camera/color/camera_info"/>
+      <remap from="rgbd_image"       to="rgbd_image"/> <!-- output -->
+      
+      <!-- Should be true for not synchronized camera topics 
+           (e.g., false for kinectv2, zed, realsense, true for xtion, kinect360)-->
+      <param name="approx_sync"       value="true"/> 
+    </node>
+
+
+    <!--- Run AMCL --> 
+    <!-- <include file="$(find amcl)/examples/amcl_omni.launch" /> -->
+    <node pkg="rtabmap_odom" type="rgbd_odometry" name="rgbd_odometry" output="screen">
+      <param name="subscribe_rgbd" type="bool"   value="true"/>
+      <param name="frame_id"       type="string" value="base_link"/>
+      <param name="publish_tf"     type="bool"   value="true"/>
+      <remap from="rgbd_image" to="rgbd_image"/>
+      <remap from="odom" to="rtabmap/odom" />
+    </node>
+
+    <!-- <node
+        name="tf_camera_base"
+        pkg="tf"
+        type="static_transform_publisher"
+        args="0 0 1.4 0 0.4 0 base_link camera_link 100" /> -->
+
+
+      <!-- <node
+        name="tf_camera_base"
+        pkg="tf"
+        type="static_transform_publisher"
+        args="0 0 1.4 0 0.3487 0 base_link camera_link 100" /> -->
+    <node
+        name="tf_camera_base"
+        pkg="tf"
+        type="static_transform_publisher"
+        args="0 0 1.2 0 0 0 base_link camera_link 100" />
+        <!-- args="0 0 0.8 0 0 0 base_link camera_link 100" /> -->
+        <!-- args="0 0 0.5 0 0 0 base_link camera_link 100" /> -->
+
+    <!-- <node
+        name="tf_camera_base"
+        pkg="tf"
+        type="static_transform_publisher"
+        args="0 0 1.8 0 0.2 0 base_link camera_link 100" /> -->
+
+   <!-- <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_local">
+        <rosparam command="load" file="$(find rtab_map)/config/ekf_config.yaml" />
+        <remap from="/odometry/filtered" to="/odometry/filtered" />
+    </node> -->
+
+    <node name="rtabmap" pkg="rtabmap_slam" type="rtabmap" output="screen" args="--delete_db_on_start">
+          <param name="frame_id"        type="string" value="base_link"/>
+          <param name="odom_frame_id"   type="string" value="odom" />
+          <param name="subscribe_depth" type="bool"   value="false"/>
+          <param name="subscribe_rgbd"  type="bool"   value="true"/>
+
+          <remap from="odom"       to="rtabmap/odom"/>
+          <!-- <remap from="odom"       to="odometry/filtered"/> -->
+          <!-- <param name="odom_topic"      type="string" value="/rtabmap/odometry/filtered"/> -->
+          <!-- <param name="odom_topic"      type="string" value="/ranger_base_node/odom"/> -->
+          <remap from="rgbd_image" to="rgbd_image"/>
+
+          <param name="queue_size"  type="int"  value="10"/>
+          <param name="approx_sync" type="bool" value="false"/>
+          <param name="use_action_for_goal" type="bool" value="true"/>
+          <remap from="move_base"            to="/move_base"/>
+
+          <remap from="grid_map" to="/map"/>
+          <!-- RTAB-Map's parameters -->
+          <param name="RGBD/AngularUpdate"        type="string" value="0.01"/>
+          <param name="RGBD/LinearUpdate"         type="string" value="0.01"/>
+          <param name="RGBD/OptimizeFromGraphEnd" type="string" value="false"/>
+    </node>
+
+  <!-- <node pkg="rtabmap_viz" type="rtabmap_viz" name="rtabmap_viz" args="-d $(find rtabmap_demos)/launch/config/rgbd_gui.ini" output="screen">
+      <param name="subscribe_scan"   type="bool"   value="true"/>
+      <param name="subscribe_odom"   type="bool"   value="true"/>
+      <param name="frame_id"         type="string" value="base_footprint"/>
+      <param name="approx_sync"      type="bool"   value="true"/>
+
+      <remap from="odom"            to="/odom"/>
+      <remap from="scan"            to="/scan"/>
+    </node> -->
+
+
+  <node pkg="rviz" type="rviz" name="rviz" args="-d /home/grange/Program/naviwhere/visualnav-transformer/deployment/src/pure_odom.rviz"/>
+</launch> 
