@@ -93,6 +93,19 @@ This command opens up 4 windows:
 When the robot has finished its first-stage navigating,  `pd_controller.py` will automatically stop. Then it wil open three terminal windows:
 
 1. `roslaunch pure_odom.launch`: This launch file starts rtab-map to provide visual-odometry for localization of the car.
+   Remember to change the `rgb/image`, `depth/image`, `rgb/camera_info` here to the topics according to Realsense camera.
+   ```xml
+       <node pkg="nodelet" type="nodelet" name="rgbd_sync" args="standalone rtabmap_sync/rgbd_sync" output="screen">
+         <remap from="rgb/image"        to="/camera/color/image_raw"/>
+         <remap from="depth/image"      to="/camera/depth/image_raw"/>
+         <remap from="rgb/camera_info"  to="/camera/color/camera_info"/>
+         <remap from="rgbd_image"       to="rgbd_image"/> <!-- output -->
+
+         <!-- Should be true for not synchronized camera topics 
+              (e.g., false for kinectv2, zed, realsense, true for xtion, kinect360)-->
+         <param name="approx_sync"       value="true"/> 
+       </node>
+   ```
 2. `source ~/.zshrc; conda activate vint_deployment; python3 second_navigation.py`: This script stores the rgb and depth image of its current view in `deployment/topomaps/rgbd/<bag_name>/` and publishes the transform from current pose to target pose.
 3. `source ~/.zshrc; conda activate vint_deployment; python pid.py`: This script controls the base to move to target pose with PID controller.
 
