@@ -12,7 +12,7 @@ tmux splitw -v -p 50 # split it into two halves
 
 # Run the roslaunch command in the first pane
 tmux select-pane -t 0
-tmux send-keys "source ../../../detic/devel/setup.sh" Enter
+tmux send-keys "source /home/grange/Program/naviwhere/detic/devel/setup.sh" Enter
 tmux send-keys "roslaunch vint_locobot.launch" Enter
 
 # Run the navigate.py script with command line args in the second pane

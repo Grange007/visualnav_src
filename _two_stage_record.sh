@@ -9,7 +9,7 @@ first_process() {
 
 second_process() {
     echo "First process terminated, starting second process..."
-    cd ../../src
+    cd ../../visualnav_src
     python ./image_storer.py $1
 }
 
