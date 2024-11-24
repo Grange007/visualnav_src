@@ -110,3 +110,37 @@ When the robot has finished its first-stage navigating,  `pd_controller.py` will
 3. `source ~/.zshrc; conda activate vint_deployment; python pid.py`: This script controls the base to move to target pose with PID controller.
 
 For some reasons, I have to use `gnome-terminal -- zsh -c "source ~/.zshrc; conda activate vint_deployment"` to open a new terminal window. If you use `bash` instead of `zsh`, change `zsh` here to `bash` and `.zshrc` to `.bashrc`.
+
+### Visualize trajectory
+
+The trajectory visualization hasn't been integrated with the fine-tuning navigation. It only involves the first stage of navigation.
+
+To visualize the trajectory, you can record & create topomap as before:
+
+#### Record the rosbag:
+
+```bash
+./record_bag.sh <bag_name>
+```
+
+#### Make the topological map:
+
+```bash
+./create_topomap.sh <topomap_name> <bag_filename>
+```
+
+#### Navigation with visualization
+
+Then, you should use `navigation_visualize.sh` instead of `navigation.sh`:
+
+```
+./navigate_visualize.sh “--model <model_name> --dir <topomap_dir>”
+```
+
+Or you can choose to visualize all the proposed trajectories by add  param '`-v'`:
+
+```
+./navigate_visualize.sh “--model <model_name> --dir <topomap_dir> -v”
+```
+
+You can see the visualized trajectories in Rviz by adding topic `/waypoint_img`

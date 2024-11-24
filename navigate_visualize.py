@@ -42,6 +42,17 @@ MAX_V = robot_config["max_v"]
 MAX_W = robot_config["max_w"]
 RATE = robot_config["frame_rate"] 
 
+ORBBRC_INTRINSTIC = np.array([[607.7113037109375, 0.0, 314.4875793457031],
+                                [0.0, 607.1227416992188, 236.67176818847656],
+                                [0.0, 0.0, 1.0]])
+ORBBRC_DISTORTION = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+
+FISHEYE_INTRINSTIC = np.array([[311.09415234, 0.0, 320.49627911],
+                                [0.0, 312.87792079, 229.53748997],
+                                [0.0, 0.0, 1.0]])
+FISHEYE_DISTORTION = np.array([-0.34466151, 0.15690221, 0.00150065, -0.00040348, -0.03968661])
+
+
 # GLOBALS
 context_queue = []
 context_size = None  
@@ -51,7 +62,7 @@ subgoal = []
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
-VIZ_IMAGE_SIZE = (1280, 720)
+VIZ_IMAGE_SIZE = (640, 480)
 RED = np.array([1, 0, 0])
 GREEN = np.array([0, 1, 0])
 BLUE = np.array([0, 0, 1])
@@ -111,21 +122,17 @@ def plot_trajs_and_points_on_image(
     assert len(list_trajs) <= len(traj_colors), "Not enough colors for trajectories"
     assert len(list_points) <= len(point_colors), "Not enough colors for points"
     ax.imshow(img)
-    camera_height = 0.1
+    camera_height = 0.38
     camera_x_offset = 0.0
     # print(list_points)
 
-    fx = 607.7113037109375
-    fy = 607.1227416992188
-    cx = 314.4875793457031
-    cy = 236.67176818847656
+    fx = FISHEYE_INTRINSTIC[0, 0]
+    fy = FISHEYE_INTRINSTIC[1, 1]
+    cx = FISHEYE_INTRINSTIC[0, 2]
+    cy = FISHEYE_INTRINSTIC[1, 2]
     camera_matrix = gen_camera_matrix(fx, fy, cx, cy)
 
-    k1 = 0
-    k2 = 0
-    p1 = 0
-    p2 = 0
-    k3 = 0
+    [k1, k2, p1, p2, k3] = FISHEYE_DISTORTION
     dist_coeffs = np.array([k1, k2, p1, p2, k3, 0.0, 0.0, 0.0])
 
     for i, traj in enumerate(list_trajs):
@@ -313,7 +320,7 @@ def project_points(
         uv: array of shape (batch_size, horizon, 2) representing (u, v) coordinates on the 2D image plane
     """
     batch_size, horizon, _ = xy.shape
-
+    # print(xy)
     # create 3D coordinates with the camera positioned at the given height
     xyz = np.concatenate(
         [xy, -camera_height * np.ones(list(xy.shape[:-1]) + [1])], axis=-1
@@ -328,7 +335,7 @@ def project_points(
         xyz_cv.reshape(batch_size * horizon, 3), rvec, tvec, camera_matrix, dist_coeffs
     )
     uv = uv.reshape(batch_size, horizon, 2)
-
+    print(uv)
     return uv
 
 
